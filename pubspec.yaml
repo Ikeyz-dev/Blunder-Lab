@@ -1,0 +1,19 @@
+name: blunder_lab
+description: Turn the mistakes in your chess games into puzzles.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.0.10
+  stockfish_flutter_plus:
+    path: packages/stockfish_flutter_plus
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/pieces/

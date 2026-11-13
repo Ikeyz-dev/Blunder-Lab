@@ -1,0 +1,49 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # The repo only holds the Dart source. Generate the Android wrapper here
+      # so there is nothing platform-specific to maintain by hand.
+      - name: Generate Android project
+        run: |
+          flutter create --platforms=android --org com.innocentdigitals --project-name blunder_lab _scaffold
+          rm -rf android
+          cp -r _scaffold/android android
+          rm -rf _scaffold
+          sed -i 's/android:label="[^"]*"/android:label="Blunder Lab"/' android/app/src/main/AndroidManifest.xml
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Build release APK (64-bit ARM phones)
+        run: flutter build apk --release --target-platform android-arm64
+
+      - name: Show APK size breakdown
+        run: |
+          ls -lh build/app/outputs/flutter-apk/app-release.apk
+          unzip -lv build/app/outputs/flutter-apk/app-release.apk | sort -k1 -n -r | head -12
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blunder-lab-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
